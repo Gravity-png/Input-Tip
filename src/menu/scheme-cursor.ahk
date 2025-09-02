@@ -31,18 +31,27 @@ fn_scheme_cursor(*) {
             if (item.value = 1) {
                 writeIni("changeCursor", 0)
                 global changeCursor := 0
-                for v in cursorInfo {
-                    if (v.origin) {
-                        DllCall("SetSystemCursor", "Ptr", DllCall("LoadCursorFromFile", "Str", v.origin, "Ptr"), "Int", v.value)
+                try {
+                    for v in cursorInfo {
+                        if (v.origin) {
+                            DllCall("SetSystemCursor", "Ptr", DllCall("LoadCursorFromFile", "Str", v.origin, "Ptr"), "Int", v.value)
+                        } else {
+                            ; 如果没有获取到原始的工形光标样式文件，则直接加载一个默认的样式
+                            if (v.type == "IBEAM") {
+                                DllCall("SetSystemCursor", "Ptr", DllCall("LoadCursorFromFile", "Str", "C:\Windows\Cursors\beam_m.cur", "Ptr"), "Int", v.value)
+                            }
+                        }
                     }
                 }
-
                 createTipGui([{
                     opt: "",
                     text: "正在尝试恢复到启动 InputTip 之前的鼠标样式"
                 }, {
                     opt: "cRed",
-                    text: "可能无法完全恢复，你需要进行以下额外步骤或者重启系统:`n1. 进入【系统设置】=>【蓝牙和其他设备】=>【鼠标】=>【其他鼠标设置】`n2. 重新应用你之前使用的鼠标样式",
+                    text: "可能无法完全恢复，这时就需要重启系统以完全移除动态加载的鼠标样式",
+                }, {
+                    opt: "cGray",
+                    text: "如果你不想重启系统，也可以通过系统设置，重新应用之前的鼠标样式"
                 }], "InputTip - 尝试恢复鼠标样式").Show()
             } else {
                 writeIni("changeCursor", 1)
