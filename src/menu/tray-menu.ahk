@@ -2,7 +2,7 @@
 
 #Include "*i startup.ahk"
 #Include "*i check-update.ahk"
-#Include "*i input-mode.ahk"
+#Include "*i input-method.ahk"
 #Include "*i cursor-mode.ahk"
 #Include "*i bw-list.ahk"
 #Include "*i symbol-pos.ahk"
@@ -51,6 +51,8 @@ makeTrayMenu() {
 
     A_TrayMenu.Add()
     A_TrayMenu.Add("暂停/运行", pauseApp)
+    A_TrayMenu.Default := "暂停/运行"
+    A_TrayMenu.ClickCount := 1
     A_TrayMenu.Add("暂停/运行快捷键", (*) => (
         setHotKeyGui([{
             config: "hotkey_Pause",
@@ -59,7 +61,7 @@ makeTrayMenu() {
         }], "软件暂停/运行")
     ))
     A_TrayMenu.Add()
-    A_TrayMenu.Add("输入法模式", fn_input_mode)
+    A_TrayMenu.Add("输入法相关", fn_input_mode)
     A_TrayMenu.Add("状态切换快捷键", (*) => (
         setHotKeyGui([{
             config: "hotkey_CN",
@@ -104,6 +106,7 @@ makeTrayMenu() {
 
 fn_exit(*) {
     killJAB()
+    revertCursor(cursorInfo)
     ExitApp()
 }
 fn_restart(*) {
@@ -617,21 +620,24 @@ getFontList() {
 }
 
 pauseApp(*) {
+    updateTip(!A_IsPaused)
     if (A_IsPaused) {
-        updateTip(!A_IsPaused)
         A_TrayMenu.Uncheck("暂停/运行")
         setTrayIcon(iconRunning)
         reloadSymbol()
+        reloadCursor()
         if (enableJABSupport) {
             runJAB()
         }
     } else {
-        updateTip(!A_IsPaused)
         A_TrayMenu.Check("暂停/运行")
         setTrayIcon(iconPaused)
         hideSymbol()
         if (enableJABSupport) {
             killJAB(0)
+        }
+        if (changeCursor) {
+            revertCursor(cursorInfo)
         }
     }
     Pause(-1)
